@@ -1,0 +1,34 @@
+import sqlite3
+import csv
+i dont love y
+# Define database path and queries
+database_path = "/Users/i552686/Library/Application Support/Microsoft Edge/Default/History2"
+queries = {
+    "Downloads": "select  datetime(start_time / 1000000 + (strftime('%s', '1601-01-01')), 'unixepoch', 'localtime') AS time, current_path, referrer, site_url, tab_url, tab_referrer_url, received_bytes from downloads",
+    "VisitedURLs": "select  datetime(last_visit_time / 1000000 + (strftime('%s', '1601-01-01')), 'unixepoch', 'localtime') AS time, url, title, visit_count from urls"
+}
+
+# Establish a connection to the SQLite database
+connection = sqlite3.connect(database_path)
+
+# Process each query and write results to CSV
+for query_name, query in queries.items():
+    # Execute the query
+    cursor = connection.cursor()
+    cursor.execute(query)
+
+    # Fetch query results
+    results = cursor.fetchall()
+
+    # Create a CSV file for this query
+    csv_file_path = f"/Users/i552686/Documents/scripts/browser/{query_name}.csv"
+
+    # Write query results to CSV
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        fieldnames = [description[0] for description in cursor.description]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows([dict(zip(fieldnames, row)) for row in results])
+
+# Close the connection
+connection.close()
